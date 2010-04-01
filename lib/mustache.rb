@@ -330,10 +330,29 @@ class Mustache
 
   # Parses our fancy pants template file and returns normal file with
   # all special {{tags}} and {{#sections}}replaced{{/sections}}.
+  #
+  # The first argument may be a template string or instance of Template.
+  #
+  # The second argument (if given) will be used as the context
+  #
+  # Contexts may be hashes, arrays, or Ruby objects.
+  #
+  # For example:
+  #
+  #   view.render(template_string, { :blah => true })
+  #   view.render(template_string, [{ :id => 1 }], { :id => 2 }])
   def render(data = template, ctx = {})
     tpl = templateify(data)
 
+    # Shortcut if there's no context.
     return tpl.render(context) if ctx == {}
+
+    # If we're passed an array, cheat and turn the entire template
+    # into a section so we can iterate over it.
+    if ctx.is_a? Array
+      ctx = { :context => ctx }
+      tpl = Template.new("{{#context}}#{tpl.source}{{/context}}")
+    end
 
     begin
       context.push(ctx)

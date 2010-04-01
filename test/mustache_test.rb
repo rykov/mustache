@@ -412,6 +412,24 @@ rendered
 rendered
   end
 
+  def test_implicit_context
+    view = ImplicitContext.new
+    assert_equal <<rendered, view.render(view.template, ImplicitContext.data)
+<tr id="123">
+ <td>A</td>
+ <td>0.99</td>
+</tr>
+<tr id="456">
+ <td>B</td>
+ <td>1.99</td>
+</tr>
+<tr id="789">
+ <td>C</td>
+ <td>2.99</td>
+</tr>
+rendered
+  end
+
   def test_indentation
     view = Mustache.new
     view[:name] = 'indent'

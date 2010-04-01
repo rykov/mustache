@@ -1,0 +1,7 @@
+---
+[
+ {prod_id: "123", sku: "A", price: 0.99},
+ {prod_id: "456", sku: "B", price: 1.99},
+ {prod_id: "789", sku: "C", price: 2.99}
+]
+---
