@@ -1,0 +1,14 @@
+{{%IMPLICIT-ITERATOR}}
+{{#names}}
+  * {{.}}
+{{/names}}
+
+{{%IMPLICIT-ITERATOR iterator=_}}
+{{#names}}
+  * {{_}}
+{{/names}}
+
+{{%IMPLICIT-ITERATOR iterator=bob}}
+{{#names}}
+  * {{bob}}
+{{/names}}
