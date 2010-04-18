@@ -2,7 +2,16 @@ $LOAD_PATH.unshift File.dirname(__FILE__)
 require 'helper'
 
 class PragmaTest < Test::Unit::TestCase
-  def test_implicit_iterator
+  def test_unescaped_by_default
+    assert_equal <<-text.chomp, PragmaUnescaped.render
+
+* Bear < Shark
+* Bear &lt; Shark
+* <h1><b>Awesome</b></h1>
+text
+  end
+
+  def TODO_implicit_iterator
     assert_equal <<-text, Pragma.render
 
 * Chris
@@ -19,7 +28,7 @@ class PragmaTest < Test::Unit::TestCase
 text
   end
 
-  def test_dot_notation
+  def TODO_dot_notation
     assert_equal <<-text.chomp, PragmaDotNotation.render
 
 * Chris Firescythe
