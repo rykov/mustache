@@ -6,9 +6,17 @@ class PragmaDotNotation < Mustache
 
   def person
     return {
-      :name => 'Chris',
-      :age => 24
+      :name => OpenStruct.new(:first => 'Chris', :last => 'Firescythe'),
+      :age  => 24,
+      :hometown => {
+        :city  => "Cincinnati",
+        :state => "OH"
+      }
     }
+  end
+
+  def normal
+    "Normal"
   end
 end
 

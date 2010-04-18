@@ -289,7 +289,7 @@ class Mustache
     end
   end
 
-  # Return the value of the configuration setting on the superclass, or return 
+  # Return the value of the configuration setting on the superclass, or return
   # the default.
   #
   # attr_name - Symbol name of the attribute.  It should match the instance variable.

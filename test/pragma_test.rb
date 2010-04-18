@@ -20,10 +20,14 @@ text
   end
 
   def test_dot_notation
-    assert_equal <<-text, PragmaDotNotation.render
+    assert_equal <<-text.chomp, PragmaDotNotation.render
 
-* Chris
+* Chris Firescythe
 * 24
+* Cincinnati, OH
+* Cincinnati, OH
+* Cincinnati, OH
+* Normal
 text
   end
 end
