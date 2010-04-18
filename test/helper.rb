@@ -1,4 +1,5 @@
 require 'test/unit'
+require 'pp'
 
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/fixtures'
 
