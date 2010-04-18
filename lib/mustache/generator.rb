@@ -128,6 +128,35 @@ class Mustache
       compiled
     end
 
+    # Activates a pragma, a destructive and often syntax-modifying
+    # macro-like directive. Pragmas can be used to add features to
+    # Mustache while still keeping compatibility with the spec.
+    # Unknown pragmas trigger an exception.
+    #
+    # name - The String name of the pragma being activated,
+    #   e.g. IMPLICIT-ITERATOR
+    # options - A Hash of Symbol-keyed options to be passed on to the
+    #   pragma.
+    #
+    # Returns nothing.
+    # Raises UnknownPragma if the passed name does not map to a class
+    #   method on the `Mustache::Pragmas` module.
+    def on_pragma(name, options = {})
+      # "IMPLICIT-ITERATOR" => "implicit_iterator"
+      method = name.downcase.gsub(/\W/, '_')
+
+      # Check to see if it's defined. Not every implementation
+      # implements every pragma.
+      raise UnknownPragma.new(name) unless Pragmas.respond_to?(method)
+
+      # Invoke `Pragma.implicit_iterator(generator, options)` or
+      # whatever.
+      Pragmas.send(method, self, options)
+
+      # Return an unimportant empty string.
+      ""
+    end
+
     # Fired when the compiler finds a partial. We want to return code
     # which calls a partial at runtime instead of expanding and
     # including the partial's body to allow for recursive partials.
