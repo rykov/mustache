@@ -48,11 +48,11 @@ EOF
     SKIP_WHITESPACE = [ '#', '^', '/' ]
 
     # The content allowed in a tag name.
-    ALLOWED_CONTENT = /(\w|[?!\/-])*/
+    ALLOWED_CONTENT = /(\w|[?!\/._-])*/
 
     # These types of tags allow any content,
     # the rest only allow ALLOWED_CONTENT.
-    ANY_CONTENT = [ '!', '=' ]
+    ANY_CONTENT = [ '!', '=', '%' ]
 
     attr_reader :scanner, :result
     attr_writer :otag, :ctag
@@ -109,7 +109,7 @@ EOF
       # Since {{= rewrites ctag, we store the ctag which should be used
       # when parsing this specific tag.
       current_ctag = self.ctag
-      type = @scanner.scan(/#|\^|\/|=|!|<|>|&|\{/)
+      type = @scanner.scan(/#|\^|\/|=|!|<|>|&|%|\{/)
       @scanner.skip(/\s*/)
 
       # ANY_CONTENT tags allow any character inside of them, while
@@ -149,6 +149,17 @@ EOF
         # ignore comments
       when '='
         self.otag, self.ctag = content.split(' ', 2)
+      when '%'
+        # {{%PRAGMA}}
+        tag, options = content.split(' ', 2)
+
+        # "option=key option2=value" => { :option => "key", :option2 => "key" }
+        options = Array(options).inject({}) do |hash, option|
+          key, value = option.split('=', 2)
+          hash.merge(key.intern => value)
+        end
+
+        @result << [:mustache, :pragma, tag, options]
       when '>', '<'
         @result << [:mustache, :partial, content]
       when '{', '&'
