@@ -21,7 +21,6 @@ class Mustache
     # path, which it uses to find partials.
     def initialize(source)
       @source = source
-      @tmpid = 0
     end
 
     # Renders the `@source` Mustache template using the given
@@ -47,7 +46,7 @@ class Mustache
     # Does the dirty work of transforming a Mustache template into an
     # interpolation-friendly Ruby string.
     def compile(src = @source)
-      Generator.new.compile(tokens)
+      Generator.new.compile(tokens(src))
     end
     alias_method :to_s, :compile
 
@@ -58,12 +57,12 @@ class Mustache
 
   private
     # Render helper for {{# Key }} .. {{/ Key }}
-    def render_section(ctx, key)
+    def render_section(ctx, key, raw)
       v = ctx[key]
       if v == true
         yield
       elsif v.is_a?(Proc)
-        v.call(yield)
+        Mustache::Template.new(v.call(raw).to_s).render(ctx.dup)
       elsif !hide_section?(v)
         v = [v] unless v.is_a?(Array) # When passed non-array
         v.map { |h| ctx.push(h); r = yield; ctx.pop; r }.join
