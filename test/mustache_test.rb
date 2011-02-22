@@ -57,6 +57,14 @@ end_complex
     assert_equal %Q'<p class="flash-notice" style="display: none;">', instance.render
   end
 
+  def test_sassy_single_line_sections
+    instance = Mustache.new
+    instance[:full_time] = true
+    instance.template = "\n {{#full_time}}full time{{/full_time}}\n"
+
+    assert_equal "\n full time\n", instance.render
+  end
+
   def test_two_line_sections
     html = %(<p class="flash-notice" {{# no_flash }}style="display: none;"\n{{/ no_flash }}>)
 

@@ -109,6 +109,7 @@ EOF
       # Scan until we hit an opening delimiter.
       start_of_line = @scanner.beginning_of_line?
       pre_match_position = @scanner.pos
+      last_index = @result.length
 
       return unless x = @scanner.scan(/([ \t]*)?#{Regexp.escape(otag)}/)
       padding = @scanner[1] || ''
@@ -145,11 +146,13 @@ EOF
         @result << [:mustache, :section, content, block]
         @sections << [content, position, @result]
         @result = block
+        last_index = 1
       when '^'
         block = [:multi]
         @result << [:mustache, :inverted_section, content, block]
         @sections << [content, position, @result]
         @result = block
+        last_index = 1
       when '/'
         section, pos, result = @sections.pop
         raw = @scanner.pre_match[pos[3]...pre_match_position] + padding
@@ -189,18 +192,18 @@ EOF
       # the remaining whitespace.  If not, but we've been hanging on to padding
       # from the beginning of the line, re-insert the padding as static text.
       if start_of_line
-        if SKIP_WHITESPACE.include?(type)
+        if @scanner.peek(1) == "\n" && SKIP_WHITESPACE.include?(type)
           @scanner.skip(/[ \t]*\n/)
         else
-          @result.insert(-2, [:static, padding]) unless padding.empty?
+          @result.insert(last_index, [:static, padding]) unless padding.empty?
         end
       end
-
-      return unless @result == [:multi]
 
       # Store off the current scanner position now that we've closed the tag
       # and consumed any irrelevant whitespace.
       @sections.last[1] << @scanner.pos unless @sections.empty?
+
+      return unless @result == [:multi]
     end
 
     # Try to find static text, e.g. raw HTML with no {{mustaches}}.
