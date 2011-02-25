@@ -51,7 +51,7 @@ EOF
     SKIP_WHITESPACE = [ '#', '^', '/', '<', '>', '=', '!' ]
 
     # The content allowed in a tag name.
-    ALLOWED_CONTENT = /(\w|[?!\/-])*/
+    ALLOWED_CONTENT = /(\w|[?!\/.-])*/
 
     # These types of tags allow any content,
     # the rest only allow ALLOWED_CONTENT.
@@ -139,17 +139,19 @@ EOF
       # We found {{ but we can't figure out what's going on inside.
       error "Illegal content in tag" if content.empty?
 
+      fetch = [:mustache, :fetch, content.split('.')]
+
       # Based on the sigil, do what needs to be done.
       case type
       when '#'
         block = [:multi]
-        @result << [:mustache, :section, content, block]
+        @result << [:mustache, :section, fetch, block]
         @sections << [content, position, @result]
         @result = block
         last_index = 1
       when '^'
         block = [:multi]
-        @result << [:mustache, :inverted_section, content, block]
+        @result << [:mustache, :inverted_section, fetch, block]
         @sections << [content, position, @result]
         @result = block
         last_index = 1
@@ -173,9 +175,9 @@ EOF
         # The closing } in unescaped tags is just a hack for
         # aesthetics.
         type = "}" if type == "{"
-        @result << [:mustache, :utag, content]
+        @result << [:mustache, :utag, fetch]
       else
-        @result << [:mustache, :etag, content]
+        @result << [:mustache, :etag, fetch]
       end
 
       # Skip whitespace and any balancing sigils after the content

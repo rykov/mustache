@@ -88,6 +88,11 @@ class Mustache
         # Copy instance variables set in Sinatra to the view
         instance_variables.each do |name|
           instance.instance_variable_set(name, instance_variable_get(name))
+
+          # Automagic attr_readers for ivars you set in Sinatra routes.
+          if !instance.respond_to?(name)
+            (class << instance; self end).send(:attr_reader, name.to_s.sub('@',''))
+          end
         end
 
         # Render with locals.
@@ -106,7 +111,7 @@ class Mustache
       end
 
       # Returns a View class for a given template name.
-      def mustache_class(template, options)
+      def mustache_class(template, options = {})
         @template_cache.fetch(:mustache, template) do
           compile_mustache(template, options)
         end
@@ -117,6 +122,10 @@ class Mustache
       def compile_mustache(view, options = {})
         options[:templates] ||= settings.views if settings.respond_to?(:views)
         options[:namespace] ||= self.class
+
+        unless options[:namespace].to_s.include? 'Views'
+          options[:namespace] = options[:namespace].const_get(:Views)
+        end
 
         factory = Class.new(Mustache) do
           self.view_namespace = options[:namespace]
@@ -132,6 +141,8 @@ class Mustache
         # Try to find the view class for a given view, e.g.
         # :view => Hurl::Views::Index.
         klass = factory.view_class(view)
+        klass.view_namespace = options[:namespace]
+        klass.view_path      = options[:views]
 
         # If there is no view class, issue a warning and use the one
         # we just generated to cache the compiled template.

@@ -12,8 +12,6 @@ class Mustache
   # A Context represents the context which a Mustache template is
   # executed within. All Mustache tags reference keys in the Context.
   class Context
-    attr_accessor :frame, :key
-
     # Expect to be passed an instance of `Mustache`.
     def initialize(mustache)
       @stack = [mustache]
@@ -40,6 +38,13 @@ class Mustache
     # inside a Mustache object as a context, we'll use that one.
     def mustache_in_stack
       @stack.detect { |frame| frame.is_a?(Mustache) }
+    end
+
+    # Allows customization of how Mustache escapes things.
+    #
+    # Returns a String.
+    def escapeHTML(str)
+      mustache_in_stack.escapeHTML(str)
     end
 
     # Adds a new object to the context's internal stack.
@@ -87,31 +92,48 @@ class Mustache
     # If no second parameter is passed (or raise_on_context_miss is
     # set to true), will raise a ContextMiss exception on miss.
     def fetch(name, default = :__raise)
-      @key = name
-
       @stack.each do |frame|
         # Prevent infinite recursion.
         next if frame == self
-        @frame = frame
 
-        # Is this frame a hash?
-        hash = frame.respond_to?(:has_key?)
-
-        if hash && frame.has_key?(name)
-          return frame[name]
-        elsif hash && frame.has_key?(name.to_s)
-          @key = name.to_s
-          return frame[name.to_s]
-        elsif !hash && frame.respond_to?(name)
-          @frame = nil
-          return frame.__send__(name)
+        value = find(frame, name, :__missing)
+        if value != :__missing
+          return value
         end
       end
 
-      @frame = @key = nil
-
       if default == :__raise || mustache_in_stack.raise_on_context_miss?
         raise ContextMiss.new("Can't find #{name} in #{@stack.inspect}")
+      else
+        default
+      end
+    end
+
+    # Finds a key in an object, using whatever method is most
+    # appropriate. If the object is a hash, does a simple hash lookup.
+    # If it's an object that responds to the key as a method call,
+    # invokes that method. You get the idea.
+    #
+    #     obj - The object to perform the lookup on.
+    #     key - The key whose value you want.
+    # default - An optional default value, to return if the
+    #           key is not found.
+    #
+    # Returns the value of key in obj if it is found and default otherwise.
+    def find(obj, key, default = nil)
+      hash = obj.respond_to?(:has_key?)
+
+      if hash && obj.has_key?(key)
+        obj[key]
+      elsif hash && obj.has_key?(key.to_s)
+        obj[key.to_s]
+      elsif !hash && obj.respond_to?(key)
+        meth = obj.method(key)
+        if meth.arity == 1
+          meth.to_proc
+        else
+          meth[]
+        end
       else
         default
       end

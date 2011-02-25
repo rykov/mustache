@@ -92,7 +92,8 @@ class Mustache
     # passed the section name and the array of tokens.
     def on_section(name, content, raw)
       ev(<<-compiled)
-      render_section(ctx, #{name.to_sym.inspect}, #{raw.inspect}) do
+      v = #{compile!(name)}
+      render_section(ctx, v, #{raw.inspect}) do
         #{compile(content)}
       end
       compiled
@@ -102,7 +103,8 @@ class Mustache
     # we're passed the inverted section name and the array of tokens.
     def on_inverted_section(name, content, raw)
       ev(<<-compiled)
-      render_inverted_section(ctx, #{name.to_sym.inspect}) do
+      v = #{compile!(name)}
+      render_inverted_section(ctx, v) do
         #{compile(content)}
       end
       compiled
@@ -118,9 +120,10 @@ class Mustache
     # An unescaped tag.
     def on_utag(name)
       ev(<<-compiled)
-        v = ctx[#{name.to_sym.inspect}]
-        v = Mustache::Template.new(v.call.to_s).render(ctx.dup) if v.is_a?(Proc)
-        ctx.frame[ctx.key] = v if ctx.frame.is_a?(Hash)
+        v = #{compile!(name)}
+        if v.is_a?(Proc)
+          v = Mustache::Template.new(v.call.to_s).render(ctx.dup)
+        end
         v.to_s
       compiled
     end
@@ -128,11 +131,29 @@ class Mustache
     # An escaped tag.
     def on_etag(name)
       ev(<<-compiled)
-        v = ctx[#{name.to_sym.inspect}]
-        v = Mustache::Template.new(v.call.to_s).render(ctx.dup) if v.is_a?(Proc)
-        ctx.frame[ctx.key] = v if ctx.frame.is_a?(Hash)
-        CGI.escapeHTML(v.to_s)
+        v = #{compile!(name)}
+        if v.is_a?(Proc)
+          v = Mustache::Template.new(v.call.to_s).render(ctx.dup)
+        end
+        ctx.escapeHTML(v.to_s)
       compiled
+    end
+
+    def on_fetch(names)
+      names = names.map { |n| n.to_sym }
+
+      if names.length == 0
+        "ctx[:to_s]"
+      elsif names.length == 1
+        "ctx[#{names.first.to_sym.inspect}]"
+      else
+        initial, *rest = names
+        <<-compiled
+          #{rest.inspect}.inject(ctx[#{initial.inspect}]) { |value, key|
+            value && ctx.find(value, key)
+          }
+        compiled
+      end
     end
 
     # An interpolation-friendly version of a string, for use within a

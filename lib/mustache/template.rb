@@ -57,8 +57,7 @@ class Mustache
 
   private
     # Render helper for {{# Key }} .. {{/ Key }}
-    def render_section(ctx, key, raw)
-      v = ctx[key]
+    def render_section(ctx, v, raw)
       if v == true
         yield
       elsif v.is_a?(Proc)
@@ -70,8 +69,8 @@ class Mustache
     end
 
     # Render helper for {{^ Key }} .. {{/ Key }}
-    def render_inverted_section(ctx, key)
-      yield if hide_section?(ctx[key])
+    def render_inverted_section(ctx, v)
+      yield if hide_section?(v)
     end
 
     # Should the passed section be shown or hidden
