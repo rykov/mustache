@@ -78,4 +78,17 @@ EOF
     end
   end
 
+  def test_raw_content_and_whitespace
+    lexer = Mustache::Parser.new
+    tokens = lexer.compile("{{#list}}\t{{/list}}")
+
+    expected = [:multi,
+      [:mustache,
+        :section,
+        [:mustache, :fetch, ["list"]],
+        [:multi, [:static, "\t"]],
+        "\t"]]
+
+    assert_equal expected, tokens
+  end
 end

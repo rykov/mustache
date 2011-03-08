@@ -1,3 +1,19 @@
+## 0.99.2 (2011-03-06)
+
+* Added some HTML5 tags to tpl-mode.el
+* Bugfix: {{#sections}} and whitespace
+
+## 0.99.1 (2011-03-01)
+
+* Bugfix: Strings used in sections no longer enumerate.
+
+## 0.99.0 (2011-02-28)
+
+* Unary methods of Mustache view can now be used in sections as procs.
+* Added instance-level versions of all view settings.
+* Emacs mode: Support for dot notation
+* Sinatra: Support for `mustache "views/in/sub/directories"`
+
 ## 0.98.0 (2011-02-24)
 
 * Dot Notation: {{person.name}}

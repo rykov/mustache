@@ -57,12 +57,42 @@ end_complex
     assert_equal %Q'<p class="flash-notice" style="display: none;">', instance.render
   end
 
+  def test_strings_as_sections_do_not_enumerate
+    instance = Mustache.new
+    instance[:contact] = "Call 1-888-FLOWERS\nAsk for Johnson."
+    instance.template = "{{#contact}}<div id='contact'>{{contact}}</div>{{/contact}}"
+
+    assert_equal "<div id='contact'>Call 1-888-FLOWERS\nAsk for Johnson.</div>",
+                 instance.render
+  end
+
   def test_sassy_single_line_sections
     instance = Mustache.new
     instance[:full_time] = true
     instance.template = "\n {{#full_time}}full time{{/full_time}}\n"
 
     assert_equal "\n full time\n", instance.render
+  end
+
+  def test_sassier_single_line_sections
+    instance = Mustache.new
+    instance.template = "\t{{#list}}\r\n\t{{/list}}"
+
+    assert_equal "", instance.render
+  end
+
+  def test_padding_before_section
+    instance = Mustache.new
+    instance.template = "\t{{#list}}a{{/list}}"
+
+    assert_equal "\taa", instance.render(:list => [1, 2])
+  end
+
+  def test_padding_before_section_on_eos
+    instance = Mustache.new
+    instance.template = "{{#list}}\n\t{{/list}}"
+
+    assert_equal "", instance.render(:list => [1, 2])
   end
 
   def test_two_line_sections
